@@ -5,13 +5,29 @@ interface PieChartDatum {
 
 class LabeledPieChart {
   d3: any
+  data: Array<PieChartDatum>
   width: number
   height: number
+  colorFn: (d: PieChartDatum) => string
 
-  constructor(d3: any, width: number = 960, height: number = 480) {
+  constructor(
+    d3: any, 
+    data: Array<PieChartDatum>, 
+    options: {
+      width: number, 
+      height: number,
+      colorFn?: (d: PieChartDatum) => string
+    } = { width: 960, height: 480 }
+  ) {
     this.d3 = d3
-    this.width = width
-    this.height = height
+    this.data = data
+    this.width = options.width
+    this.height = options.height
+
+    const color = d3.scaleOrdinal(d3.schemeTableau10)
+    this.colorFn = options.colorFn || function(d: PieChartDatum) {
+      return color(d.label)
+    }
   }
 
   render(el: HTMLElement) {
@@ -55,30 +71,17 @@ class LabeledPieChart {
 
     var key = function(d: any) { return d.data.label }
 
-    var color = d3.scaleOrdinal()
-      .domain(["Lorem ipsum", "dolor sit", "amet", "consectetur", "adipisicing", "elit", "sed", "do", "eiusmod", "tempor", "incididunt"])
-      .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"])
-
-    function randomData(): Array<PieChartDatum> {
-      var labels = color.domain()
-      return labels.map(function(label: string) {
-        return { label: label, value: Math.random() }
-      })
-    }
-
     const change = (data: Array<PieChartDatum>) => {
       /* ------- PIE SLICES -------*/
-      var slice = svg.select(".slices").selectAll("path.slice")
+      var slice = svg.select(".slices").selectAll("path")
         .data(pie(data), key)
-
-      slice.enter()
-        .insert("path")
-        .attr('stroke', '#fff')
-        .attr('d', arc)
-        .style("fill", function(d: any) { 
-          return color(d.data.label) 
-        })
-        .attr("class", "slice")
+        .join("path")
+          .attr('stroke', '#fff')
+          .attr('d', arc)
+          .style("fill", (d: any) => { 
+            return this.colorFn(d.data) 
+          })
+          .attr("class", "slice")
 
       slice		
         .transition().duration(1000)
@@ -92,9 +95,6 @@ class LabeledPieChart {
             return arc(interpolate(t))
           }
         })
-
-      slice.exit()
-        .remove()
 
       /* ------- TEXT LABELS -------*/
 
@@ -168,12 +168,7 @@ class LabeledPieChart {
         })
     }
 
-    change(randomData())
-
-    d3.select(".randomize")
-      .on("click", function() {
-        change(randomData())
-      })
+    change(this.data)
   }
 }
 

@@ -1,14 +1,19 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var LabeledPieChart = /** @class */ (function () {
-    function LabeledPieChart(d3, width, height) {
-        if (width === void 0) { width = 960; }
-        if (height === void 0) { height = 480; }
+    function LabeledPieChart(d3, data, options) {
+        if (options === void 0) { options = { width: 960, height: 480 }; }
         this.d3 = d3;
-        this.width = width;
-        this.height = height;
+        this.data = data;
+        this.width = options.width;
+        this.height = options.height;
+        var color = d3.scaleOrdinal(d3.schemeTableau10);
+        this.colorFn = options.colorFn || function (d) {
+            return color(d.label);
+        };
     }
     LabeledPieChart.prototype.render = function (el) {
+        var _this = this;
         var d3 = this.d3;
         var svg = d3.select(el).selectAll("svg")
             .data([null])
@@ -36,25 +41,15 @@ var LabeledPieChart = /** @class */ (function () {
             .outerRadius(radius * 0.9);
         svg.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
         var key = function (d) { return d.data.label; };
-        var color = d3.scaleOrdinal()
-            .domain(["Lorem ipsum", "dolor sit", "amet", "consectetur", "adipisicing", "elit", "sed", "do", "eiusmod", "tempor", "incididunt"])
-            .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
-        function randomData() {
-            var labels = color.domain();
-            return labels.map(function (label) {
-                return { label: label, value: Math.random() };
-            });
-        }
         var change = function (data) {
             /* ------- PIE SLICES -------*/
-            var slice = svg.select(".slices").selectAll("path.slice")
-                .data(pie(data), key);
-            slice.enter()
-                .insert("path")
+            var slice = svg.select(".slices").selectAll("path")
+                .data(pie(data), key)
+                .join("path")
                 .attr('stroke', '#fff')
                 .attr('d', arc)
                 .style("fill", function (d) {
-                return color(d.data.label);
+                return _this.colorFn(d.data);
             })
                 .attr("class", "slice");
             slice
@@ -69,8 +64,6 @@ var LabeledPieChart = /** @class */ (function () {
                     return arc(interpolate(t));
                 };
             });
-            slice.exit()
-                .remove();
             /* ------- TEXT LABELS -------*/
             var text = svg.select(".labels").selectAll("text")
                 .data(pie(data), key)
@@ -136,11 +129,7 @@ var LabeledPieChart = /** @class */ (function () {
                 };
             });
         };
-        change(randomData());
-        d3.select(".randomize")
-            .on("click", function () {
-            change(randomData());
-        });
+        change(this.data);
     };
     return LabeledPieChart;
 }());
