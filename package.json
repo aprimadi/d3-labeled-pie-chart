@@ -1,8 +1,7 @@
-
 {
   "name": "d3-labeled-pie-chart",
   "author": "Armin Primadi",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "main": "dist/es5/index.js",
   "module": "dist/es6/index.js",
