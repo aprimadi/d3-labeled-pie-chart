@@ -18,7 +18,7 @@
   },
   "scripts": {
     "compile": "rm -Rf dist && npx tsc && npx tsc --build tsconfig.es5.json && npx tsc --declaration --emitDeclarationOnly --outDir ./dist && npx browserify examples/index.js -o examples/bundle.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 0"
   },
   "repository": {
     "type": "git",
